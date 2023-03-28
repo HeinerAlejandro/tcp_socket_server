@@ -12,6 +12,8 @@ from ipaddress import (
 
 import time
 
+from rich.console import Console
+
 from adapters.interfaces.sockets import (
     SocketServerHandlerPeriodicAbstract,
     SocketServerAbstract
@@ -23,8 +25,8 @@ from helpers import (
     get_config_from_yaml
 )
 
-from core import exceptions
-from core.data_types import RequestTuple
+import exceptions
+from data_types import RequestTuple
 
 
 class SocketServerRequestHandler(
@@ -34,12 +36,14 @@ class SocketServerRequestHandler(
 
     def fetch_product_by_interval(self, interval: int, fetch_handler: Callable):
         while True:
+            self.request.getpeername()
             product_str_data: str = fetch_handler()
             self.request.sendall(product_str_data.encode())
-            print(interval)
             time.sleep(interval)
 
     def handle(self):
+
+        c = Console()
 
         request_type = self.request.recv(1024).decode()
 
@@ -49,17 +53,20 @@ class SocketServerRequestHandler(
 
         s3_url = s3_http.get_url_by_request_type(s3_http_config, request_tuple)
 
-        if request_tuple.url_type == "PRODUCT":
-            self.request.setblocking(False)
-            handler_option_config = get_config_from_yaml("handler_options")
+        try:
+            if request_tuple.url_type == "PRODUCT":
 
-            self.fetch_product_by_interval(
-                handler_option_config["interval"],
-                lambda: s3_http.do_s3_fetch(request_tuple.url_type, s3_url)
-            )
-        else:
-            data_str = s3_http.do_s3_fetch(request_tuple.url_type, s3_url)
-            self.request.sendall(data_str.encode())
+                handler_option_config = get_config_from_yaml("handler_options")
+
+                self.fetch_product_by_interval(
+                    handler_option_config["interval"],
+                    lambda: s3_http.do_s3_fetch(request_tuple.url_type, s3_url)
+                )
+            else:
+                data_str = s3_http.do_s3_fetch(request_tuple.url_type, s3_url)
+                self.request.sendall(data_str.encode())
+        except (BrokenPipeError, OSError):
+            c.print(f"[FINISH] Client disconnected")
 
 
 class SocketServer(SocketServerAbstract):
