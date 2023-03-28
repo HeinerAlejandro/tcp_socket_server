@@ -7,10 +7,7 @@ from adapters.socket_server import SocketServer, SocketServerRequestHandler
 
 FORMAT = "%(asctime)s %(clientip)-15s %(user)-8s %(message)s"
 
-logging.basicConfig(
-    level=logging.INFO,
-    format=FORMAT
-)
+logging.basicConfig(level=logging.INFO, format=FORMAT)
 
 
 class CoreContainer(containers.DeclarativeContainer):
@@ -23,15 +20,11 @@ class CoreContainer(containers.DeclarativeContainer):
 
     config = providers.Configuration()
 
-    default_logging = providers.Singleton(
-        logging.getLogger,
-        "tcp_server"
-    )
+    default_logging = providers.Singleton(logging.getLogger, "tcp_server")
 
     socket_server = providers.Singleton(
         SocketServer,
         address=config.server.address,
         port=config.server.port,
-        request_handler=SocketServerRequestHandler
+        request_handler=SocketServerRequestHandler,
     )
-

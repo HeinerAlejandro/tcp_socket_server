@@ -2,7 +2,7 @@ import json
 import socket
 from functools import wraps
 
-from core.data_types import RequestTuple
+from data_types import RequestTuple
 
 
 def raise_socket_error_dec(custom_exc: Exception, msg: str):
@@ -13,7 +13,9 @@ def raise_socket_error_dec(custom_exc: Exception, msg: str):
                 func(*args, **kwargs)
             except socket.error:
                 raise custom_exc(msg)
+
         return wrapper
+
     return raise_socket_error
 
 
@@ -38,5 +40,5 @@ def resolve_request_type(request_str: str) -> RequestTuple:
         http_verb=request_parts[0],
         url_type=request_parts[1],
         path=json.loads(request_parts[2]),
-        query_params=request_parts[3]
+        query_params=request_parts[3],
     )

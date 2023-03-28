@@ -1,14 +1,8 @@
-from socketserver import (
-    ThreadingTCPServer,
-    BaseRequestHandler
-)
+from socketserver import ThreadingTCPServer, BaseRequestHandler
 
 from typing import Callable
 
-from ipaddress import (
-    IPv4Address,
-    IPv6Address
-)
+from ipaddress import IPv4Address, IPv6Address
 
 import time
 
@@ -16,24 +10,18 @@ from rich.console import Console
 
 from adapters.interfaces.sockets import (
     SocketServerHandlerPeriodicAbstract,
-    SocketServerAbstract
+    SocketServerAbstract,
 )
 
-from helpers import (
-    sockets,
-    s3_http,
-    get_config_from_yaml
-)
+from helpers import sockets, s3_http, get_config_from_yaml
 
 import exceptions
 from data_types import RequestTuple
 
 
 class SocketServerRequestHandler(
-    SocketServerHandlerPeriodicAbstract,
-    BaseRequestHandler
+    SocketServerHandlerPeriodicAbstract, BaseRequestHandler
 ):
-
     def fetch_product_by_interval(self, interval: int, fetch_handler: Callable):
         while True:
             self.request.getpeername()
@@ -42,7 +30,6 @@ class SocketServerRequestHandler(
             time.sleep(interval)
 
     def handle(self):
-
         c = Console()
 
         request_type = self.request.recv(1024).decode()
@@ -55,12 +42,11 @@ class SocketServerRequestHandler(
 
         try:
             if request_tuple.url_type == "PRODUCT":
-
                 handler_option_config = get_config_from_yaml("handler_options")
 
                 self.fetch_product_by_interval(
                     handler_option_config["interval"],
-                    lambda: s3_http.do_s3_fetch(request_tuple.url_type, s3_url)
+                    lambda: s3_http.do_s3_fetch(request_tuple.url_type, s3_url),
                 )
             else:
                 data_str = s3_http.do_s3_fetch(request_tuple.url_type, s3_url)
@@ -76,9 +62,8 @@ class SocketServer(SocketServerAbstract):
         self,
         address: IPv4Address | IPv6Address | str,
         port: int,
-        request_handler: BaseRequestHandler
+        request_handler: BaseRequestHandler,
     ):
-
         self.address = address
         self.port = port
         self.request_handler = request_handler
@@ -89,10 +74,9 @@ class SocketServer(SocketServerAbstract):
 
     @sockets.raise_socket_error_dec(
         custom_exc=exceptions.ConnectionErrorException,
-        msg="Ups...error has occurred while connecting to the server"
+        msg="Ups...error has occurred while connecting to the server",
     )
     def _connect(self):
         self.server = ThreadingTCPServer(
-            (self.address, int(self.port)),
-            self.request_handler
+            (self.address, int(self.port)), self.request_handler
         )
