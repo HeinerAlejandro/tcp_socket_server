@@ -13,9 +13,9 @@ The TCP Socket Server is responsible for handling requests from the socket clien
 
 The server receives messages in the following format:
 
-\`\`\`
+```
 HTTP VERB + ENDPOINT TYPE + PATH VARIABLES + QUERY PARAMS
-\`\`\`
+```
 
 Based on this format, the server determines which Django API service to call.
 
@@ -23,7 +23,7 @@ Based on this format, the server determines which Django API service to call.
 
 The configuration file is in YAML format and contains the following constants:
 
-\```yaml
+```yaml
 server: # Server configuration (used even within a Docker container)
   address: 0.0.0.0
   port: 5000
@@ -35,23 +35,23 @@ s3_server: # Django server connection information
 
 handler_options: # Product detail query interval options
   interval: 60
-\```
+```
 
 ## Response Format
 
 After processing the data, the server returns the following string format to the socket client:
 
-\`\`\`
+```
 DATA TYPE(LIST | JSON) + ENDPOINT_TYPE + DATA
-\`\`\`
+```
 
 ## Running the Project with Docker
 
 To run the project with Docker, you need to build the Docker image and then run it, mapping the appropriate ports:
 
-\```bash
+```bash
 docker build . -t server_tcp
 docker run -p <map_port>:<expose_port> server_tcp
-\```
+```
 
 ---
