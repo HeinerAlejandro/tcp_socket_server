@@ -2,7 +2,9 @@ import json
 
 import requests
 
-from core.data_types import RequestTuple
+from rich.console import Console
+
+from data_types import RequestTuple
 
 
 def get_url_by_request_type(http_options: dict, request_tuple: RequestTuple) -> str:
@@ -22,22 +24,28 @@ def get_url_by_request_type(http_options: dict, request_tuple: RequestTuple) -> 
 
 
 def do_s3_fetch(url_type: str, url: str):
+    try:
+        response = requests.get(url)
 
-    response = requests.get(url)
+        if response.status_code == 200:
 
-    if response.status_code == 200:
+            data_type = "LIST"
 
-        data_type = "LIST"
+            data = response.json()
 
-        data = response.json()
+            if "results" not in data:
+                data_type = "JSON"
+            else:
+                data = data["results"]
 
-        if "results" not in data:
-            data_type = "JSON"
-        else:
-            data = data["results"]
+            return "{data_type}+{url_type}+{data}".format(
+                data_type=data_type,
+                url_type=url_type,
+                data=json.dumps(data)
+            )
+        return ""
 
-    return "{data_type}+{url_type}+{data}".format(
-        data_type=data_type,
-        url_type=url_type,
-        data=json.dumps(data)
-    )
+    except ConnectionError as e:
+        Console().print(e)
+        return ""
+
